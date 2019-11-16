@@ -2,7 +2,7 @@ let flippyBird = (function () {
     let c = document.getElementById("flippy-bird-canvas");
     c.height = c.clientHeight;
     c.width = c.clientWidth;
-    let context = c.getContext("2d");
+    let ctx = c.getContext("2d");
     let lastUpdate = Date.now();
     let now = lastUpdate;
     let deltaT;
@@ -10,14 +10,24 @@ let flippyBird = (function () {
     let gravAcc = 18;
     let obstacles = new Array();
     let passed_obstacles = 0;
+    let pushee;
+    let ended = true;
     return {
       c: c,
 
 
       begin: function () {
         console.log("Begin game");
-        setInterval(() => {obstacles.push(flippyBird.Obstacle());},5000);
+        ended = false;
+        obstacles= [];
+        passed_obstacles = 0;
+        obstacles.push(flippyBird.Obstacle());
         flippyBird.loop();
+        pushee = setTimeout(function pusher () {
+            obstacles.push(flippyBird.Obstacle());
+            clearTimeout(pushee);
+            pushee = setTimeout(() => {pusher()}, Math.random()*(3000/(2 + 0.1*passed_obstacles))+10000/(2 + 0.1*passed_obstacles));
+          },5000);
       },
 
 
@@ -28,13 +38,19 @@ let flippyBird = (function () {
 
 
       draw: function () {
-        context.clearRect(0, 0, c.width, c.height)
-        context.font = "30px Arial";
-        context.fillStyle = "black";
-        context.fillText("Flippy Bird", 10*scale, 50*scale);
-        flippyBird.bird.draw();
+        ctx.clearRect(0, 0, c.width, c.height)
         obstacles.forEach(x => x.draw());
-        requestAnimationFrame(flippyBird.loop);
+        flippyBird.bird.draw();
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText("Flippy Bird: " + passed_obstacles, 10*scale, 50*scale);
+        if (!ended) {
+          requestAnimationFrame(flippyBird.loop);
+        }
+        else{
+          ctx.fillStyle = "black";
+          ctx.fillText("Game Over", c.width/2- 20, c.height/2);
+        }
       },
 
 
@@ -63,8 +79,8 @@ let flippyBird = (function () {
           draw: function (){
             x += velocity.x;
             y += velocity.y;
-            context.fillStyle = "grey";
-            context.fillRect(x - offset * scale, y - offset * scale, size * scale, size * scale);
+            ctx.fillStyle = "black";
+            ctx.fillRect(x - offset * scale, y - offset * scale, size * scale, size * scale);
           },
           gravity: function (){
             velocity.y += gravAcc * deltaT;
@@ -82,28 +98,34 @@ let flippyBird = (function () {
             if (velocity.y < 0.5*gravAcc) 
               velocity.y= -0.5*gravAcc;
           }
-        }
+        };
       }()),
 
 
       Obstacle: function() {
-        const width = 200;
+        let width = 200;
         let height = 3000;
         let x = c.width;
-        let space = 200;
+        let space = 240;
         let y = (Math.random()*(c.height-space-10)) + 5;
         let velocity = {x: -2 - 0.1*passed_obstacles, y: 0};
         return{
           draw: function(){
             x += velocity.x;
             y += velocity.y;
-            context.fillStyle = "green";
-            context.fillRect(x, y, width, y - height);
-            context.fillRect(x, y+space , width, y + height);
+            ctx.fillStyle = "green";
+            ctx.fillRect(x, y, width, y - height);
+            ctx.fillRect(x, y+space , width, y + height);
           },
           x: () => {return x+width/2;},
           width: width
-        }
+        };
+      },
+
+
+      end: function () {
+        clearTimeout(pushee);
+        ended = true;
       }
     };
   }());
