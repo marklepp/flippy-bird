@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="flippy-bird.css" />
-    <script src="flippy-bird.js"></script>
   </head>
-  <body>
+  <body onresize="flippyBird.resize();">
     <div class="main">
-      <canvas id="flippy-bird-canvas" class="main__canvas"></canvas>
+      <canvas id="flippy-bird-canvas" class="main__canvas""></canvas>
+      <script src="flippy-bird.js"></script>
     </div>
   </body>
 </html>
