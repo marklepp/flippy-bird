@@ -17,6 +17,8 @@ const flippyBird = (function () {
 
   function begin () {
     console.log("Begin game");
+    c.removeEventListener("mousedown",flippyBird.begin);
+    c.addEventListener("mousedown",flippyBird.jump);
     ended = false;
     obstacles= [];
     passed_obstacles = 0;
@@ -52,6 +54,7 @@ const flippyBird = (function () {
     else{
       ctx.fillStyle = "black";
       ctx.fillText("Game Over", c.width/2- 20, c.height/2);
+      cancelAnimationFrame(loop);
     }
   }
 
@@ -76,7 +79,7 @@ const flippyBird = (function () {
     let y = c.height / 2.0;
     let angle = 0;
     let velocity = {x: 0, y: 0, rot: 0};
-    let size = 50;
+    let size = 30;
     let offset = size / 2;
     return {
       draw: function (){
@@ -106,6 +109,21 @@ const flippyBird = (function () {
           angle *= 0.9
           y = c.height-offset;
         }
+        obstacles.forEach(obs => {
+          let box = {x1: x-offset, y1: y-offset, x2: x+offset, y2: y+offset};
+          let box1 = obs.box1();
+          let box2 = obs.box2();
+          if (!(box1.x1 >= box.x2 
+                || box1.x2 <= box.x1
+                || box1.y1 >= box.y2
+                || box1.y2 <= box.y1)
+              || !(box2.x1 >= box.x2 
+                  || box2.x2 <= box.x1
+                  || box2.y1 >= box.y2
+                  || box2.y2 <= box.y1)){
+              end();
+            }
+        })
       },
       jump: function(){
         if (velocity.y > 0) {
@@ -138,13 +156,29 @@ const flippyBird = (function () {
         ctx.fillRect(x, y+space , width, y + height);
       },
       x: () => {return x+width/2;},
-      width: width
+      box1: function () {
+          return {
+            x1: x, 
+            y1: y - height, 
+            x2: x + width, 
+            y2: y
+          };
+        },
+      box2: function () {
+        return {
+          x1: x, 
+          y1: y + space,  
+          x2: x + width, 
+          y2: y + height};
+      }
     };
   }
 
 
   function end () {
     clearTimeout(pushee);
+    c.removeEventListener("mousedown",flippyBird.jump);
+    c.addEventListener("mousedown",flippyBird.begin);
     ended = true;
   }
 
@@ -159,5 +193,4 @@ const flippyBird = (function () {
   };
 }());
 
-flippyBird.c.addEventListener("mousedown",flippyBird.jump);
 flippyBird.begin();
