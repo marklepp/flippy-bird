@@ -35,7 +35,7 @@
     <div class="main">
       <canvas id="flippy-bird-canvas" class="main__canvas""></canvas>
       <script>
-      const flippyBird = (function () {
+        const flippyBird = (function () {
             let c = document.getElementById("flippy-bird-canvas");
             c.height = c.clientHeight;
             c.width = c.clientWidth;
@@ -50,8 +50,8 @@
             let ended = true;
             let bird = Bird();
             let speed = -2 - 0.1*passed_obstacles;
-          
-          
+
+
             function begin () {
               console.log("Begin game");
               c.removeEventListener("mousedown",flippyBird.begin);
@@ -70,14 +70,14 @@
                     Math.random() * (3000/(2 + 0.1*passed_obstacles)) + 10000/(2 + 0.1*passed_obstacles));
                 },5000);
             }
-          
-          
+
+
             function resize () {
                 c.height = c.clientHeight;
                 c.width = c.clientWidth;
             }
-          
-          
+
+
             function draw () {
               ctx.clearRect(0, 0, c.width, c.height)
               bird.draw();
@@ -94,8 +94,8 @@
                 cancelAnimationFrame(loop);
               }
             }
-          
-          
+
+
             function loop () {
               now = Date.now();
               deltaT = (now - lastUpdate)*0.001;
@@ -104,19 +104,19 @@
                 obstacles.shift();
                 passed_obstacles += 1;
               }
-          
+
               bird.physics();
               bird.collision();
               draw();
             }
-          
-          
+
+
             function Bird () {
               let x = c.width / 3.0;
               let y = c.height / 2.0;
               let angle = 0;
               let velocity = {x: 0, y: 0, rot: 0};
-              let size = 30;
+              let size = 40;
               let offset = size / 2;
               return {
                 draw: function (){
@@ -127,7 +127,7 @@
                   ctx.save();
                   ctx.translate(x, y);
                   ctx.rotate(angle);
-                  ctx.fillStyle = "black";
+                  ctx.fillStyle = "rgb(" + Math.floor(150 * (velocity.rot/-0.30) -50) + ", 0,0)";
                   ctx.fillRect(-offset , -offset, size, size);
                   ctx.fillStyle = "white";
                   ctx.fillRect(-0.5*offset, -0.5*offset, 0.25*offset, 0.25*offset)
@@ -166,7 +166,7 @@
                   if (velocity.y > 0) {
                     velocity.y *= 0.75;
                   } 
-                  velocity.y -= 0.8*gravAcc;
+                  velocity.y -= 0.65*gravAcc;
                   velocity.rot -= 0.11;
                   if (velocity.y < -0.7*gravAcc){
                     velocity.y= -0.7*gravAcc;
@@ -174,8 +174,8 @@
                 }
               };
             }
-          
-          
+
+
             function Obstacle () {
               let width = 200;
               let height = 3000;
@@ -210,17 +210,17 @@
                 }
               };
             }
-          
-          
+
+
             function end () {
               clearTimeout(pushee);
               c.removeEventListener("mousedown",flippyBird.jump);
               c.addEventListener("mousedown",flippyBird.begin);
               ended = true;
             }
-          
-          
-          
+
+
+
             return {
               c: c,
               begin: begin,
@@ -229,7 +229,7 @@
               end: end 
             };
           }());
-          
+
           flippyBird.begin();
           </script>
     </div>

@@ -79,7 +79,7 @@ const flippyBird = (function () {
     let y = c.height / 2.0;
     let angle = 0;
     let velocity = {x: 0, y: 0, rot: 0};
-    let size = 30;
+    let size = 40;
     let offset = size / 2;
     return {
       draw: function (){
@@ -90,7 +90,7 @@ const flippyBird = (function () {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "rgb(" + Math.floor(150 * (velocity.rot/-0.30) -50) + ", 0,0)";
         ctx.fillRect(-offset , -offset, size, size);
         ctx.fillStyle = "white";
         ctx.fillRect(-0.5*offset, -0.5*offset, 0.25*offset, 0.25*offset)
@@ -129,7 +129,7 @@ const flippyBird = (function () {
         if (velocity.y > 0) {
           velocity.y *= 0.75;
         } 
-        velocity.y -= 0.8*gravAcc;
+        velocity.y -= 0.65*gravAcc;
         velocity.rot -= 0.11;
         if (velocity.y < -0.7*gravAcc){
           velocity.y= -0.7*gravAcc;
