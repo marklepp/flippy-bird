@@ -3,11 +3,18 @@ const flippyBird = (function () {
   c.height = c.clientHeight;
   c.width = c.clientWidth;
   let ctx = c.getContext("2d");
+  let entity = [];
+  let x = [];
+  let y = [];
+  let angle = [];
+  let velocity = [];
+  let height = [];
+  let width = [];
   let lastUpdate = Date.now();
   let now = lastUpdate;
   let deltaT;
   let gravAcc = 18;
-  let obstacles = new Array();
+  let obstacles = [];
   let passed_obstacles = 0;
   let pushee;
   let ended = true;
@@ -78,23 +85,25 @@ const flippyBird = (function () {
 
 
   function Bird () {
-    let x = c.width / 3.0;
-    let y = c.height / 2.0;
-    let angle = 0;
-    let velocity = {x: 0, y: 0, rot: 0};
-    let size = 40;
-    let offset = size / 2;
-    return {
+    let id = entity.length;
+    x[id] = c.width / 3.0;
+    y[id] = c.height / 2.0;
+    angle[id] = 0;
+    velocity[id] = {x: 0, y: 0, a: 0};
+    height[id] = 40;
+    width[id] = 40;
+    let offset = height[id] / 2;
+    entity[id] = {
       zero: function(){
-        velocity = {x: 0, y: 0, rot: 0};
+        velocity[id] = {x: 0, y: 0, a: 0};
       },
       draw: function (){
-        angle = (angle < (-2 * Math.PI)) ? angle + (2 * Math.PI) : angle;
+        angle[id] = (angle[id] < (-2 * Math.PI)) ? angle[id] + (2 * Math.PI) : angle[id];
         ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-        ctx.fillStyle = "rgb(" + Math.floor(150 * (velocity.rot/-0.30) -50) + ", 0,0)";
-        ctx.fillRect(-offset , -offset, size, size);
+        ctx.translate(x[id], y[id]);
+        ctx.rotate(angle[id]);
+        ctx.fillStyle = "rgb(" + Math.floor(150 * (velocity[id].a/-0.30) -50) + ", 0,0)";
+        ctx.fillRect(-offset , -offset, width[id], height[id]);
         ctx.fillStyle = "white";
         ctx.fillRect(-0.5*offset, -0.5*offset, 0.25*offset, 0.25*offset)
         ctx.fillRect(0.5*offset, -0.5*offset, 0.25*offset, 0.25*offset)
@@ -103,20 +112,20 @@ const flippyBird = (function () {
         ctx.restore()
       },
       physics: function (){
-        velocity.y += gravAcc * deltaT;
-        velocity.rot *= 0.980;
-        x += velocity.x;
-        y += velocity.y;
-        angle += velocity.rot;
+        velocity[id].y += gravAcc * deltaT;
+        velocity[id].a *= 0.980;
+        x[id] += velocity[id].x;
+        y[id] += velocity[id].y;
+        angle[id] += velocity[id].a;
       },
       collision: function (){
-        if (y > c.height-offset && velocity.y > 0){
-          velocity.y *= -0.2;
-          angle *= 0.9
-          y = c.height-offset;
+        if (y[id] > c.height-offset && velocity[id].y > 0){
+          velocity[id].y *= -0.2;
+          angle[id] *= 0.9
+          y[id] = c.height-offset;
         }
         obstacles.forEach(obs => {
-          let box = {x1: x-offset, y1: y-offset, x2: x+offset, y2: y+offset};
+          let box = {x1: x[id]-offset, y1: y[id]-offset, x2: x[id]+offset, y2: y[id]+offset};
           let box1 = obs.box1();
           let box2 = obs.box2();
           if (!(box1.x1 >= box.x2 
@@ -132,16 +141,17 @@ const flippyBird = (function () {
         })
       },
       jump: function(){
-        if (velocity.y > 0) {
-          velocity.y *= 0.75;
+        if (velocity[id].y > 0) {
+          velocity[id].y *= 0.75;
         } 
-        velocity.y -= 0.65*gravAcc;
-        velocity.rot -= 0.11;
-        if (velocity.y < -0.7*gravAcc){
-          velocity.y= -0.7*gravAcc;
+        velocity[id].y -= 0.65*gravAcc;
+        velocity[id].a -= 0.11;
+        if (velocity[id].y < -0.7*gravAcc){
+          velocity[id].y= -0.7*gravAcc;
         }
       }
     };
+    return entity[id];
   }
 
 
@@ -193,6 +203,7 @@ const flippyBird = (function () {
 
   return {
     c: c,
+    entity:() => {return entity;},
     begin: begin,
     resize: resize,
     jump: bird.jump,
