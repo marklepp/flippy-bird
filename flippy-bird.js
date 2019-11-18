@@ -19,6 +19,7 @@ const flippyBird = (function () {
     console.log("Begin game");
     c.removeEventListener("mousedown",flippyBird.begin);
     c.addEventListener("mousedown",flippyBird.jump);
+    bird.zero();
     ended = false;
     obstacles= [];
     passed_obstacles = 0;
@@ -68,8 +69,10 @@ const flippyBird = (function () {
       passed_obstacles += 1;
     }
 
-    bird.physics();
-    bird.collision();
+    if (!ended) {
+      bird.physics();
+      bird.collision();
+    }
     draw();
   }
 
@@ -82,10 +85,10 @@ const flippyBird = (function () {
     let size = 40;
     let offset = size / 2;
     return {
+      zero: function(){
+        velocity = {x: 0, y: 0, rot: 0};
+      },
       draw: function (){
-        x += velocity.x;
-        y += velocity.y;
-        angle += velocity.rot;
         angle = (angle < (-2 * Math.PI)) ? angle + (2 * Math.PI) : angle;
         ctx.save();
         ctx.translate(x, y);
@@ -102,6 +105,9 @@ const flippyBird = (function () {
       physics: function (){
         velocity.y += gravAcc * deltaT;
         velocity.rot *= 0.980;
+        x += velocity.x;
+        y += velocity.y;
+        angle += velocity.rot;
       },
       collision: function (){
         if (y > c.height-offset && velocity.y > 0){
@@ -179,6 +185,7 @@ const flippyBird = (function () {
     clearTimeout(pushee);
     c.removeEventListener("mousedown",flippyBird.jump);
     c.addEventListener("mousedown",flippyBird.begin);
+    bird.zero();
     ended = true;
   }
 
