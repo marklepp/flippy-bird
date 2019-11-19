@@ -117,6 +117,9 @@ const flippyBird = (function () {
         x[id] += velocity[id].x;
         y[id] += velocity[id].y;
         angle[id] += velocity[id].a;
+        if (velocity[id].y < -0.7*gravAcc){
+          velocity[id].y= -0.7*gravAcc;
+        }
       },
       collision: function (){
         if (y[id] > c.height-offset && velocity[id].y > 0){
@@ -146,9 +149,6 @@ const flippyBird = (function () {
         } 
         velocity[id].y -= 0.65*gravAcc;
         velocity[id].a -= 0.11;
-        if (velocity[id].y < -0.7*gravAcc){
-          velocity[id].y= -0.7*gravAcc;
-        }
       }
     };
     return entity[id];
