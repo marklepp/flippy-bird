@@ -10,6 +10,7 @@ const flippyBird = (function () {
   let velocity = [];
   let height = [];
   let width = [];
+  let space = [];
   let lastUpdate = Date.now();
   let now = lastUpdate;
   let deltaT;
@@ -131,17 +132,18 @@ const flippyBird = (function () {
           let box = {x1: x[id]-offset, y1: y[id]-offset, x2: x[id]+offset, y2: y[id]+offset};
           let box1 = obs.box1();
           let box2 = obs.box2();
-          if (!(box1.x1 >= box.x2 
-                || box1.x2 <= box.x1
-                || box1.y1 >= box.y2
-                || box1.y2 <= box.y1)
-              || !(box2.x1 >= box.x2 
-                  || box2.x2 <= box.x1
-                  || box2.y1 >= box.y2
-                  || box2.y2 <= box.y1)){
+          let collides = !(box1.x1 >= box.x2 
+                          || box1.x2 <= box.x1
+                          || box1.y1 >= box.y2
+                          || box1.y2 <= box.y1) ||
+                         !(box2.x1 >= box.x2 
+                          || box2.x2 <= box.x1
+                          || box2.y1 >= box.y2
+                          || box2.y2 <= box.y1);
+          if (collides) {
               end();
             }
-        })
+        });
       },
       jump: function(){
         if (velocity[id].y > 0) {
@@ -156,38 +158,40 @@ const flippyBird = (function () {
 
 
   function Obstacle () {
-    let width = 200;
-    let height = 3000;
-    let x = c.width;
-    let space = 240;
-    let y = (Math.random()*(c.height-space-10)) + 5;
+    let id = entity.length;
+    width[id] = 200;
+    height[id] = 3000;
+    space[id] = 240;
+    x[id] = c.width;
+    y[id] = (Math.random()*(c.height-space[id]-10)) + 5;
     speed = -2 - 0.1*passed_obstacles;
-    let velocity = {x: speed, y: 0};
-    return{
+    velocity[id] = {x: speed, y: 0};
+    entity[id] = {
       draw: function(){
-        x += velocity.x;
-        y += velocity.y;
+        x[id] += velocity[id].x;
+        y[id] += velocity[id].y;
         ctx.fillStyle = "green";
-        ctx.fillRect(x, y, width, y - height);
-        ctx.fillRect(x, y+space , width, y + height);
+        ctx.fillRect(x[id], y[id], width[id], y[id] - height[id]);
+        ctx.fillRect(x[id], y[id] + space[id] , width[id], y[id] + height[id]);
       },
-      x: () => {return x+width/2;},
+      x: () => {return x[id] + width[id]/2;},
       box1: function () {
           return {
-            x1: x, 
-            y1: y - height, 
-            x2: x + width, 
-            y2: y
+            x1: x[id], 
+            y1: y[id] - height[id], 
+            x2: x[id] + width[id], 
+            y2: y[id]
           };
         },
       box2: function () {
         return {
-          x1: x, 
-          y1: y + space,  
-          x2: x + width, 
-          y2: y + height};
+          x1: x[id], 
+          y1: y[id] + space[id],  
+          x2: x[id] + width[id], 
+          y2: y[id] + height[id]};
       }
     };
+    return entity[id];
   }
 
 
