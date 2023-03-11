@@ -377,7 +377,9 @@ class Bird2 {
   draw(ctx) {
     ctx.save();
     ctx.fillStyle =
-      "rgb(" + Math.max(0.0, Math.floor(150 * (this.velocity[2] / 0.3) - 50)) + ", 0,0)";
+      "rgb(" +
+      Math.min(255, Math.max(0.0, Math.floor(150 * Math.abs(this.velocity[2] / 0.3) - 50))) +
+      ", 0,0)";
     gMatrixStack.push(this.transform);
     gMatrixStack.applyTop(ctx);
     ctx.fillRect(0, 0, 1, 1);
@@ -389,9 +391,9 @@ class Bird2 {
     gMatrixStack.pop();
     ctx.restore();
   }
-  physics(deltaT, gravity) {
-    this.velocity[1] += gravity * deltaT;
-    this.velocity[2] *= 0.98;
+  physics(dt, gravity) {
+    this.velocity[1] += gravity * dt;
+    this.velocity[2] *= 0.2 ** dt;
     this.transform = Matrix3f.identity()
       .compose(Matrix3f.translation(this.velocity[0], this.velocity[1]))
       .compose(this.transform)
@@ -400,10 +402,8 @@ class Bird2 {
       .compose(Matrix3f.translation(-0.5, -0.5));
   }
   jump(gravity) {
-    if (this.velocity[1] > 0) {
-      this.velocity[1] *= 0.75;
-    }
-    this.velocity[1] -= 0.65 * gravity;
+    this.velocity[1] *= 0.75;
+    this.velocity[1] -= 0.5 * gravity;
     this.velocity[2] += 0.11;
     if (this.velocity[1] < -0.7 * gravity) {
       this.velocity[1] = -0.7 * gravity;
@@ -484,7 +484,7 @@ class FlippyBird {
     this.obstacles = [];
     this.passedObstacles = 0;
     this.ended = true;
-    this.gravity = 18;
+    this.gravity = 20;
     this.player = new Bird2(this.canvas.width / 3.0, this.canvas.height / 2.0, 40);
     this.bottom = new CollisionRectangle(Matrix3f.identity(), [
       [-100, this.canvas.height, 1],
@@ -505,7 +505,7 @@ class FlippyBird {
     ];
   }
   get speed() {
-    return -2 - 0.1 * this.passedObstacles;
+    return -200 - 5 * this.passedObstacles;
   }
   init() {
     this.canvas.addEventListener("mousedown", () =>
@@ -545,18 +545,32 @@ class FlippyBird {
     const ticks = Math.floor((timestamp - this.lastTick) / this.timePerTick);
     for (let i = 0; i < ticks; i += 1) {
       const dt = this.timePerTick / 1000;
-      const obstacleMoveX = this.speed * dt * 100;
+      const speed = this.speed;
+      const obstacleMoveX = speed * dt;
       this.obstacles.forEach((o) => o.move(obstacleMoveX, 0.0));
       this.player.physics(dt, this.gravity);
-      if (
-        this.obstacles.length === 0 ||
+
+      if (this.obstacles.length === 0) {
+        this.obstacles.push(
+          new Obstacle2(this.canvas.width + 100, Math.random() * this.canvas.height, 200, 30000)
+        );
+      } else if (
         this.obstacles[this.obstacles.length - 1]
           .getConvexHulls()[0]
           .farthestPointToDirection([-1, 0, 0])[0] < this.canvas.width
       ) {
+        const farthestToRight =
+          this.obstacles.length === 0
+            ? this.canvas.width + 100
+            : this.obstacles[this.obstacles.length - 1]
+                .getConvexHulls()[0]
+                .farthestPointToDirection([1, 0, 0])[0];
         this.obstacles.push(
           new Obstacle2(
-            this.canvas.width + this.canvas.width / 2,
+            Math.min(
+              farthestToRight + (this.canvas.width / 4) * 3,
+              farthestToRight + 200 - 1.5 * speed
+            ),
             Math.random() * this.canvas.height,
             200,
             30000
@@ -567,7 +581,7 @@ class FlippyBird {
       if (GJKcollision(this.player, this.bottom)) {
         let point = this.player.getConvexHulls()[0].farthestPointToDirection([0, 1, 0]);
         this.player.velocity[1] *= -0.2;
-        this.player.velocity[2] -= 0.002;
+        this.player.velocity[2] = ((speed * dt) / (2 * Math.PI)) * 0.2;
 
         this.player.transform = Matrix3f.translation(
           0.0,
@@ -597,12 +611,12 @@ class FlippyBird {
         }
       }
 
-      for (const obstacle of this.obstacles) {
-        if (GJKcollision(this.player, obstacle)) {
-          this.end();
-          return;
-        }
-      }
+      // for (const obstacle of this.obstacles) {
+      //   if (GJKcollision(this.player, obstacle)) {
+      //     this.end();
+      //     return;
+      //   }
+      // }
 
       this.obstacles = this.obstacles.filter((obstacle) => {
         const screenLeft = [0, 0, 0];
